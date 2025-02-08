@@ -29,12 +29,15 @@ export async function middleware(request: NextRequest) {
       const refreshTokenSplit = JSON.parse(Buffer.from(refreshedTokens.refreshToken.split(".")[1], "base64").toString("utf-8"))
       response.cookies.set("authToken", refreshedTokens.accessToken, {
         maxAge: tokenSplit.exp * 1000 - Date.now(),
+        httpOnly: true,
       })
       response.cookies.set("tokenExpiryDate", new Date(tokenSplit.exp * 1000).toISOString(), {
         maxAge: tokenSplit.exp * 1000 - Date.now(),
+        httpOnly: true,
       })
       response.cookies.set("refreshToken", refreshedTokens.refreshToken, {
         maxAge: refreshTokenSplit.exp * 1000 - Date.now(),
+        httpOnly: true,
       })
     }
     return response
