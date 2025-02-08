@@ -1,6 +1,6 @@
 "use client"
 
-import { login } from "@/dataFetching/loginHandeler"
+import { login } from "@/dataFetching/loginHandler"
 import { redirect, useSearchParams } from "next/navigation"
 
 export default function LoginClient() {

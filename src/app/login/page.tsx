@@ -1,6 +1,6 @@
 "use server"
 
-import { getAuthToken } from "@/dataFetching/loginHandeler"
+import { getAuthToken } from "@/dataFetching/loginHandler"
 import { Suspense } from "react"
 import LoginClient from "./loginClient"
 

@@ -1,5 +1,5 @@
 import { MiddlewareConfig, NextRequest, NextResponse } from "next/server"
-import { handleRefreshToken } from "./dataFetching/loginHandeler"
+import { handleRefreshToken } from "./dataFetching/loginHandler"
 import { unAuthenticatedRoutes } from "./utils/nonAuthRoutes"
 
 export async function middleware(request: NextRequest) {
