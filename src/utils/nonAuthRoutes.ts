@@ -1,1 +1,1 @@
-export const unAuthenticatedRoutes = ["/login", "/test", "/_not-found"]
+export const unAuthenticatedRoutes = ['/login', '/test', '/_not-found']

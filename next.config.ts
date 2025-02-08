@@ -1,13 +1,13 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  experimental: {
-    reactCompiler: true,
-  },
+	/* config options here */
+	eslint: {
+		ignoreDuringBuilds: true
+	},
+	experimental: {
+		reactCompiler: true
+	}
 }
 
-export default nextConfig;
+export default nextConfig
