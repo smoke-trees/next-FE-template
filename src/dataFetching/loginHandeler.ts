@@ -35,7 +35,7 @@ async function setTokensAsCookie(token: string, refreshToken: string) {
   const expiryDate = new Date(decodedToken.exp * 1000)
   const refreshDecodedToken = JSON.parse(Buffer.from(refreshToken.split(".")[1], "base64").toString("utf-8"))
   const refreshExpiryDate = new Date(refreshDecodedToken.exp * 1000)
-  nextCookies.set("token", token, {
+  nextCookies.set("authToken", token, {
     path: "/",
     httpOnly: true,
     maxAge: expiryDate.getTime() - Date.now(),
@@ -64,7 +64,7 @@ export async function login(username: string, password: string) {
 
 export async function getAuthToken() {
   const nextCookies = await cookies()
-  const tokenCookie = nextCookies.get("token")
+  const tokenCookie = nextCookies.get("authToken")
   const expiryDateCookie = nextCookies.get("tokenExpiryDate")
   const refreshTokenCookie = nextCookies.get("refreshToken")
   if (!tokenCookie && !refreshTokenCookie) {

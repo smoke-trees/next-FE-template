@@ -1,9 +1,11 @@
 "use client"
 
 import { login } from "@/dataFetching/loginHandeler"
-import { redirect } from "next/navigation"
+import { redirect, useSearchParams } from "next/navigation"
 
 export default function LoginClient() {
+  const searchParams = useSearchParams()
+  const next = searchParams.get("next")?.toString() || "/"
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     console.log("In handleSubmit")
     e.preventDefault()
@@ -12,7 +14,7 @@ export default function LoginClient() {
     const password = formData.get("password")?.toString() || ""
     const tokens = await login(username, password)
     if (tokens) {
-      redirect("/")
+      redirect(next)
     } else {
       alert("Invalid username or password")
     }
