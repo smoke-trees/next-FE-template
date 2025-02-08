@@ -13,7 +13,7 @@ function handleLogin(username: string, password: string) {
       username,
       password,
     }),
-  }).then((res) => res.json() as Promise<{ token: string; refreshToken: string }>)
+  }).then((res) => res.json())
 }
 
 export async function handleRefreshToken(refreshToken: string) {
@@ -25,7 +25,7 @@ export async function handleRefreshToken(refreshToken: string) {
     body: JSON.stringify({
       refreshToken,
     }),
-  }).then((res) => res.json() as Promise<{ token: string; refreshToken: string }>)
+  }).then((res) => res.json())
 }
 
 async function setTokensAsCookie(token: string, refreshToken: string) {
@@ -54,12 +54,12 @@ async function setTokensAsCookie(token: string, refreshToken: string) {
 }
 
 export async function login(username: string, password: string) {
-  const { token, refreshToken } = await handleLogin(username, password)
-  if (!token || !refreshToken) {
-    return null
+  const loginRes = await handleLogin(username, password)
+  if (loginRes.status.error || !loginRes.token || !loginRes.refreshToken) {
+    return { error: true, message: loginRes.message }
   }
-  await setTokensAsCookie(token, refreshToken)
-  return { token, refreshToken }
+  await setTokensAsCookie(loginRes.result.accessToken, loginRes.result.refreshToken)
+  return { token: loginRes.result.accessToken, refreshToken: loginRes.result.refreshToken, error: false }
 }
 
 export async function getAuthToken() {
@@ -67,20 +67,5 @@ export async function getAuthToken() {
   const tokenCookie = nextCookies.get("authToken")
   const expiryDateCookie = nextCookies.get("tokenExpiryDate")
   const refreshTokenCookie = nextCookies.get("refreshToken")
-  if (!tokenCookie && !refreshTokenCookie) {
-    return null
-  }
-  if (tokenCookie && refreshTokenCookie) {
-    const expiryDate =
-      expiryDateCookie?.value ||
-      new Date(JSON.parse(Buffer.from(tokenCookie.value.split(".")[1], "base64").toString("utf-8")).exp * 1000)
-    if (new Date(expiryDate).getTime() - new Date().getTime() < 1000 * 60 * 30) {
-      const { token, refreshToken } = await handleRefreshToken(refreshTokenCookie.value)
-      await setTokensAsCookie(token, refreshToken)
-      return { token, refreshToken }
-    } else {
-      return { token: tokenCookie.value, refreshToken: refreshTokenCookie.value }
-    }
-  }
-  return null
+  return { token: tokenCookie?.value, refreshToken: refreshTokenCookie?.value, expiry: expiryDateCookie?.value }
 }

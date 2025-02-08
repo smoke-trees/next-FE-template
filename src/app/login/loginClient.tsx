@@ -13,10 +13,10 @@ export default function LoginClient() {
     const username = formData.get("username")?.toString() || ""
     const password = formData.get("password")?.toString() || ""
     const tokens = await login(username, password)
-    if (tokens) {
+    if (!tokens.error) {
       redirect(next)
     } else {
-      alert("Invalid username or password")
+      alert(tokens.message || "Invalid username or password")
     }
     return
   }

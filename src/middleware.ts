@@ -22,9 +22,12 @@ export async function middleware(request: NextRequest) {
     })
     if (!authToken || new Date(expiryDate || "").getTime() - new Date().getTime() <= 1000 * 60 * 30) {
       const refreshedTokens = await handleRefreshToken(refreshToken)
-      const tokenSplit = JSON.parse(Buffer.from(refreshedTokens.token.split(".")[1], "base64").toString("utf-8"))
+      if (refreshedTokens.status.error || !refreshedTokens.accessToken || !refreshedTokens.refreshToken) {
+        return NextResponse.redirect(new URL(`/login?next=${pathname}`, request.url))
+      }
+      const tokenSplit = JSON.parse(Buffer.from(refreshedTokens.accessToken.split(".")[1], "base64").toString("utf-8"))
       const refreshTokenSplit = JSON.parse(Buffer.from(refreshedTokens.refreshToken.split(".")[1], "base64").toString("utf-8"))
-      response.cookies.set("authToken", refreshedTokens.token, {
+      response.cookies.set("authToken", refreshedTokens.accessToken, {
         maxAge: tokenSplit.exp * 1000 - Date.now(),
       })
       response.cookies.set("tokenExpiryDate", new Date(tokenSplit.exp * 1000).toISOString(), {
