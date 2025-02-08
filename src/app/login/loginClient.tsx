@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 
 export default function LoginClient() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    console.log("In handleSubmit")
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const username = formData.get("username")?.toString() || ""

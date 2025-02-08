@@ -16,7 +16,7 @@ function handleLogin(username: string, password: string) {
   }).then((res) => res.json() as Promise<{ token: string; refreshToken: string }>)
 }
 
-function handleRefreshToken(refreshToken: string) {
+export async function handleRefreshToken(refreshToken: string) {
   return fetch(`${API_URL}/refresh`, {
     method: "POST",
     headers: {
