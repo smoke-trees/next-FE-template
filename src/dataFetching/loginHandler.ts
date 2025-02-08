@@ -30,7 +30,6 @@ export async function handleRefreshToken(refreshToken: string) {
 
 async function setTokensAsCookie(token: string, refreshToken: string) {
 	const nextCookies = await cookies()
-	console.log(token, refreshToken)
 	const decodedToken = JSON.parse(
 		Buffer.from(token.split('.')[1], 'base64').toString('utf-8')
 	)
@@ -59,7 +58,11 @@ async function setTokensAsCookie(token: string, refreshToken: string) {
 
 export async function login(username: string, password: string) {
 	const loginRes = await handleLogin(username, password)
-	if (loginRes.status.error || !loginRes.token || !loginRes.refreshToken) {
+	if (
+		loginRes.status.error ||
+		!loginRes.result.accessToken ||
+		!loginRes.result.refreshToken
+	) {
 		return { error: true, message: loginRes.message }
 	}
 	await setTokensAsCookie(

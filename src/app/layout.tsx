@@ -1,6 +1,7 @@
 'use server' //! Should never change under any circumstances
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
+import CustomErrorBoundary from '@/component/ErrorBoundary.jsx'
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -19,7 +20,7 @@ export default async function RootLayout({
 	return (
 		<html lang='en'>
 			<body className={`${geistSans.variable} ${geistMono.variable}`}>
-				{children}
+				<CustomErrorBoundary childComponents={children} />
 			</body>
 		</html>
 	)

@@ -12,6 +12,11 @@ export async function middleware(request: NextRequest) {
 		const authToken = request.cookies.get('authToken')?.value
 		const refreshToken = request.cookies.get('refreshToken')?.value
 		const expiryDate = request.cookies.get('tokenExpiryDate')?.value
+		if (shouldSkipAuth) {
+			return NextResponse.next({
+				headers: requestHeaders
+			})
+		}
 		if (!refreshToken) {
 			if (!shouldSkipAuth) {
 				return NextResponse.redirect(

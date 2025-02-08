@@ -7,7 +7,6 @@ export default function LoginClient() {
 	const searchParams = useSearchParams()
 	const next = searchParams.get('next')?.toString() || '/'
 	async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-		console.log('In handleSubmit')
 		e.preventDefault()
 		const formData = new FormData(e.currentTarget)
 		const username = formData.get('username')?.toString() || ''
