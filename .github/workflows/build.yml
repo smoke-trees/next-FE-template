@@ -1,0 +1,50 @@
+name: Build and Deploy question bank admin
+
+on:
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  buildTest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4.0.0
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.1.0
+        with:
+          node-version: 'lts/*'
+          cache: 'pnpm'
+
+      - name: Install Packages
+        run: pnpm install --frozen-lockfile
+
+      - name: Build project
+        run: npm run build
+      
+
+    if: failure()
+    steps:
+      - name: Add comment on failure
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: '🚨 The CI workflow has failed. Please check the logs and fix the issue.'
+            });
