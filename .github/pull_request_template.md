@@ -1,0 +1,14 @@
+- [] layout.tsx will always be server side
+- [] use query - no re-fetch triggers
+- [] no loose object - avoid any at all costs
+- [] all props will always have types - no inline typing
+- [] all heavy components will be wrapped with suspense
+- [] state based calculation will not be used in a useEffect() and will not be set in a state
+- [] avoid useLayoutEffect()
+- [] avoid prop drilling - not more than 2 components
+- [] filters and unimportant state will be put in URL search params
+- [] no cyclic fetch calls
+- [] server actions only for server rendered page
+- [] aaltu faltu packages not allowed
+- [] error states in component level
+- [] if multiple state use useReducer()
