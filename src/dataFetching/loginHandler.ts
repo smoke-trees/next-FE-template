@@ -87,3 +87,23 @@ export async function getAuthToken() {
 		expiry: expiryDateCookie?.value
 	}
 }
+
+export async function logout() {
+	const nextCookies = await cookies()
+	nextCookies.set('authToken', '', {
+		path: '/',
+		httpOnly: true,
+		maxAge: 0
+	})
+	nextCookies.set('refreshToken', '', {
+		path: '/',
+		httpOnly: true,
+		maxAge: 0
+	})
+	nextCookies.set('tokenExpiryDate', '', {
+		path: '/',
+		httpOnly: true,
+		maxAge: 0
+	})
+	return
+}
