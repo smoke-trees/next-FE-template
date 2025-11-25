@@ -81,19 +81,26 @@ export async function getAuthToken() {
 	const tokenCookie = nextCookies.get('authToken')
 	const expiryDateCookie = nextCookies.get('tokenExpiryDate')
 	const refreshTokenCookie = nextCookies.get('refreshToken')
-	if(!tokenCookie ||
-			new Date(expiryDateCookie?.value|| '').getTime() - new Date().getTime() <=
-				1000 * 60 * 30) {
-		const refreshedTokens = await handleRefreshToken(refreshTokenCookie?.value || '')
-		if(refreshedTokens?.status?.error) {
+	if (
+		!tokenCookie ||
+		new Date(expiryDateCookie?.value || '').getTime() - new Date().getTime() <=
+			1000 * 60 * 30
+	) {
+		const refreshedTokens = await handleRefreshToken(
+			refreshTokenCookie?.value || ''
+		)
+		if (refreshedTokens?.status?.error) {
 			return {
-				token: ""
+				token: ''
 			}
 		}
-		await setTokensAsCookie(refreshedTokens.accessToken, refreshedTokens.refreshToken)
+		await setTokensAsCookie(
+			refreshedTokens.accessToken,
+			refreshedTokens.refreshToken
+		)
 		return {
 			token: refreshedTokens.accessToken,
-			refreshToken: refreshedTokens.refreshToken,
+			refreshToken: refreshedTokens.refreshToken
 		}
 	}
 	return {

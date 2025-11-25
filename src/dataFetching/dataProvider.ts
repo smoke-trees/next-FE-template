@@ -1,5 +1,5 @@
-import { authFetch } from "@/utils/authFetch"
-import { API_URL } from "./api.config"
+import { authFetch } from '@/utils/authFetch'
+import { API_URL } from './api.config'
 
 export type Result<T> = {
 	status: {
@@ -11,7 +11,11 @@ export type Result<T> = {
 	count?: number
 }
 
-type baseQueryFilters = string | number | boolean | (string | number | boolean)[]
+type baseQueryFilters =
+	| string
+	| number
+	| boolean
+	| (string | number | boolean)[]
 
 export type filter<T, K extends object> =
 	T extends object ?
@@ -136,7 +140,10 @@ export const dataProvider = {
 			if (queryParams.like) {
 				Object.keys(queryParams.like).forEach((e) => {
 					if (queryParams.like![e as string | keyof TResult]?.includes('%')) {
-						params.append(`like[${e}]`, queryParams.like![e as string | keyof TResult] || '')
+						params.append(
+							`like[${e}]`,
+							queryParams.like![e as string | keyof TResult] || ''
+						)
 					} else {
 						params.append(
 							`like[${e}]`,
@@ -187,9 +194,15 @@ export const dataProvider = {
 			if (queryParams.like) {
 				Object.keys(queryParams.like).forEach((e) => {
 					if (queryParams.like![e as keyof TResult]?.includes('%')) {
-						params.append(`like[${e}]`, queryParams.like![e as keyof TResult] || '')
+						params.append(
+							`like[${e}]`,
+							queryParams.like![e as keyof TResult] || ''
+						)
 					} else {
-						params.append(`like[${e}]`, `%${queryParams.like![e as keyof TResult & string]}%`)
+						params.append(
+							`like[${e}]`,
+							`%${queryParams.like![e as keyof TResult & string]}%`
+						)
 					}
 				})
 				delete queryParams.like
@@ -197,8 +210,8 @@ export const dataProvider = {
 			Object.keys(queryParams).forEach((e) => {
 				if (Array.isArray(queryParams[e as keyof listFilter<TResult, K>])) {
 					/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-					;(queryParams[e as keyof listFilter<TResult, K>] as any[]).forEach((ee) =>
-						params.append(e, ee)
+					;(queryParams[e as keyof listFilter<TResult, K>] as any[]).forEach(
+						(ee) => params.append(e, ee)
 					)
 				} else {
 					params.append(
