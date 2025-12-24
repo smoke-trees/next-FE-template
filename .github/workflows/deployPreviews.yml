@@ -10,10 +10,6 @@ on:
     branches:
       - master
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -39,7 +35,14 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: 'pnpm'
+      - name: Configure Git identity for Vercel
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "${{ secrets.VERCEL_EMAIL }}"
 
+      # Configure Git Identifier for Vercel
+      - name: Configure Git Identifier for Vercel
+        run: git commit --amend --author="GitHub Actions <${{ env.VERCEL_EMAIL }}>" --no-edit
       # Install Vercel CLI
       - name: Install Vercel CLI
         run: pnpm add -g vercel

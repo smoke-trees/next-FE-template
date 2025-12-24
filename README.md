@@ -1,1 +1,1 @@
-ADD `VERCEL_TOKEN` and `VERCEL_PROJECT_NAME` to github repo for deployment previews.
+ADD `VERCEL_TOKEN`, `VERCEL_PROJECT_NAME` and `VERCEL_EMAIL` to github action serets for deployment previews.
