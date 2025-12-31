@@ -62,7 +62,7 @@ jobs:
       # Deploy to Vercel
       - name: Deploy to Vercel
         run: |
-          DEPLOY_URL=$(vercel deploy --prebuilt --yes --token ${{ env.VERCEL_TOKEN }})
+          DEPLOY_URL=$(vercel deploy --archive=tgz --prebuilt --yes --token ${{ env.VERCEL_TOKEN }})
           echo "DEPLOY_URL=${DEPLOY_URL}" >> $GITHUB_ENV
 
       - name: Add comment to PR
