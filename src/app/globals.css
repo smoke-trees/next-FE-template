@@ -1,6 +1,15 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
 * {
 	box-sizing: border-box;
 	margin: 0;

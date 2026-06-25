@@ -17,6 +17,78 @@ type baseQueryFilters =
 	| boolean
 	| (string | number | boolean)[]
 
+type QueryParams = Record<string, baseQueryFilters>
+
+function buildUrl(
+	resource: string,
+	queryParams?: QueryParams,
+	identifier?: string
+): string {
+	let url = `${API_URL}/${resource}`
+	if (identifier) url += `/${identifier}`
+
+	if (!queryParams) return url
+
+	const params = new URLSearchParams()
+	for (const [key, value] of Object.entries(queryParams)) {
+		if (Array.isArray(value)) {
+			for (const v of value) params.append(key, String(v))
+		} else {
+			params.append(key, String(value))
+		}
+	}
+
+	const qs = params.toString()
+	if (!qs) return url
+
+	return url.includes('?') ? `${url}&${qs}` : `${url}?${qs}`
+}
+
+function buildLikeFilter(
+	like: Record<string, string | undefined> | undefined,
+	params: URLSearchParams
+): void {
+	if (!like) return
+
+	for (const [key, value] of Object.entries(like)) {
+		const v = value ?? ''
+		params.append(`like[${key}]`, v.includes('%') ? v : `%${v}%`)
+	}
+}
+
+function buildFilterUrl(
+	resource: string,
+	queryParams: Record<string, unknown> | undefined,
+	identifier?: string
+): string {
+	let url = `${API_URL}/${resource}`
+	if (identifier) url += `/${identifier}`
+
+	if (!queryParams) return url
+
+	const params = new URLSearchParams()
+	const like = queryParams.like as Record<string, string | undefined> | undefined
+	buildLikeFilter(like, params)
+
+	for (const [key, value] of Object.entries(queryParams)) {
+		if (key === 'like') continue
+		if (Array.isArray(value)) {
+			for (const v of value) params.append(key, String(v))
+		} else {
+			params.append(key, String(value))
+		}
+	}
+
+	const qs = params.toString()
+	if (!qs) return url
+
+	return url.includes('?') ? `${url}&${qs}` : `${url}?${qs}`
+}
+
+async function handleResponse<T>(response: Response): Promise<T> {
+	return response.json()
+}
+
 export type filter<T, K extends object> =
 	T extends object ?
 		{
@@ -52,272 +124,72 @@ export const dataProvider = {
 	create: async <TEntity extends object, TResult = string | number>(
 		resource: string,
 		body: TEntity,
-		queryParams?: Record<string, baseQueryFilters>
+		queryParams?: QueryParams
 	) => {
-		let queryString: string | undefined
-		if (queryParams) {
-			const params = new URLSearchParams()
-			Object.keys(queryParams).forEach((e) => {
-				if (Array.isArray(queryParams[e])) {
-					/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-					;(queryParams[e] as any[]).forEach((ee) => params.append(e, ee))
-				} else {
-					/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-					params.append(e, queryParams[e] as any)
-				}
-			})
-			queryString = params.toString()
-		}
-		return authFetch(
-			`${API_URL}/${resource}${
-				queryString ?
-					resource.includes('?') ?
-						`&${queryString}`
-					:	`?${queryString}`
-				:	''
-			}`,
-			{
-				method: 'POST',
-				body: JSON.stringify(body)
-			}
-		)
+		return authFetch(buildUrl(resource, queryParams), {
+			method: 'POST',
+			body: JSON.stringify(body)
+		})
 			.then((res) => res.json())
 			.then((data) => data as Result<TResult>)
-			.catch((e) => {
-				console.error(e)
-				throw e
-			})
 	},
 
 	post: async <TResult>(
 		resource: string,
-		/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-		body?: Record<any, any>,
-		queryParams?: Record<string, baseQueryFilters>
+		body?: Record<string, unknown>,
+		queryParams?: QueryParams
 	) => {
-		let queryString: string | undefined
-		if (queryParams) {
-			const params = new URLSearchParams()
-			Object.keys(queryParams).forEach((e) => {
-				if (Array.isArray(queryParams[e])) {
-					/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-					;(queryParams[e] as any[]).forEach((ee) => params.append(e, ee))
-				} else {
-					/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-					params.append(e, queryParams[e] as any)
-				}
-			})
-			queryString = params.toString()
-		}
-		return authFetch(
-			`${API_URL}/${resource}${
-				queryString ?
-					resource.includes('?') ?
-						`&${queryString}`
-					:	`?${queryString}`
-				:	''
-			}`,
-			{
-				method: 'POST',
-				body: JSON.stringify(body)
-			}
-		)
+		return authFetch(buildUrl(resource, queryParams), {
+			method: 'POST',
+			body: JSON.stringify(body)
+		})
 			.then((res) => res.json())
 			.then((data) => data as Result<TResult>)
-			.catch((e) => {
-				console.error(e)
-				throw e
-			})
 	},
+
 	get: async <K extends object, TResult = Result<K>>(
 		resource: string,
 		identifier?: string,
 		queryParams?: filter<TResult, K>
 	) => {
-		let queryString: string | undefined
-		if (queryParams) {
-			const params = new URLSearchParams()
-			if (queryParams.like) {
-				Object.keys(queryParams.like).forEach((e) => {
-					if (queryParams.like![e as string | keyof TResult]?.includes('%')) {
-						params.append(
-							`like[${e}]`,
-							queryParams.like![e as string | keyof TResult] || ''
-						)
-					} else {
-						params.append(
-							`like[${e}]`,
-							`%${(queryParams.like as any)![e as string | keyof TResult] ?? ''}%`
-						)
-					}
-				})
-				delete queryParams.like
-			}
-			Object.keys(queryParams).forEach((e) => {
-				if (Array.isArray(queryParams[e as keyof filter<TResult, K>])) {
-					/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-					;(queryParams[e as keyof filter<TResult, K>] as any[]).forEach((ee) =>
-						params.append(e, ee)
-					)
-				} else {
-					/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-					params.append(e, queryParams[e as keyof filter<TResult, K>] as any)
-				}
-			})
-			queryString = params.toString()
-		}
-		let url = `${API_URL}/${resource}`
-		if (identifier) url += `/${identifier}`
 		return authFetch(
-			`${url}${
-				queryString ?
-					url.includes('?') ?
-						`&${queryString}`
-					:	`?${queryString}`
-				:	''
-			}`
+			buildFilterUrl(resource, queryParams, identifier)
 		)
-			.then((res) => res.json())
-			.then((data) => data as TResult)
-			.catch((e) => {
-				console.error(e)
-				throw e
-			})
+			.then(handleResponse<TResult>)
 	},
+
 	getList: async <K extends object, TResult extends object = K>(
 		resource: string,
 		queryParams?: listFilter<TResult, K>
 	) => {
-		let queryString: string | undefined
-		if (queryParams) {
-			const params = new URLSearchParams()
-			if (queryParams.like) {
-				Object.keys(queryParams.like).forEach((e) => {
-					if (queryParams.like![e as keyof TResult]?.includes('%')) {
-						params.append(
-							`like[${e}]`,
-							queryParams.like![e as keyof TResult] || ''
-						)
-					} else {
-						params.append(
-							`like[${e}]`,
-							`%${queryParams.like![e as keyof TResult & string]}%`
-						)
-					}
-				})
-				delete queryParams.like
-			}
-			Object.keys(queryParams).forEach((e) => {
-				if (Array.isArray(queryParams[e as keyof listFilter<TResult, K>])) {
-					/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-					;(queryParams[e as keyof listFilter<TResult, K>] as any[]).forEach(
-						(ee) => params.append(e, ee)
-					)
-				} else {
-					params.append(
-						e,
-						/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-						queryParams[e as keyof listFilter<TResult, K>] as any
-					)
-				}
-			})
-			queryString = params.toString()
-		}
-		return authFetch(
-			`${API_URL}/${resource}${
-				queryString ?
-					resource.includes('?') ?
-						`&${queryString}`
-					:	`?${queryString}`
-				:	''
-			}`
-		)
+		return authFetch(buildFilterUrl(resource, queryParams))
 			.then((res) => res.json())
 			.then((data) => data as Result<TResult[]>)
-			.catch((e) => {
-				console.error(e)
-				throw e
-			})
 	},
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	update: async <TEntity extends object, TResult extends object = {}>(
+
+	update: async <TEntity extends object, TResult extends object = Record<string, never>>(
 		resource: string,
 		identifier: string,
 		body: Partial<TEntity>,
-		queryParams?: Record<string, baseQueryFilters>
+		queryParams?: QueryParams
 	) => {
-		let queryString: string | undefined
-		if (queryParams) {
-			const params = new URLSearchParams()
-			Object.keys(queryParams).forEach((e) => {
-				if (Array.isArray(queryParams[e])) {
-					/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-					;(queryParams[e] as any[]).forEach((ee) => params.append(e, ee))
-				} else {
-					/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-					params.append(e, queryParams[e] as any)
-				}
-			})
-			queryString = params.toString()
-		}
-		const postAPI_URL = `${resource}/${identifier}`
-		return authFetch(
-			`${API_URL}/${postAPI_URL}${
-				queryString ?
-					postAPI_URL.includes('?') ?
-						`&${queryString}`
-					:	`?${queryString}`
-				:	''
-			}`,
-			{
-				method: 'PUT',
-				body: JSON.stringify(body)
-			}
-		)
+		return authFetch(buildUrl(`${resource}/${identifier}`, queryParams), {
+			method: 'PUT',
+			body: JSON.stringify(body)
+		})
 			.then((res) => res.json())
 			.then((data) => data as Result<TResult>)
-			.catch((e) => {
-				console.error(e)
-				throw e
-			})
 	},
+
 	delete: async <TResult>(
 		resource: string,
 		identifier: string,
-		queryParams?: Record<string, baseQueryFilters>
+		queryParams?: QueryParams
 	) => {
-		let queryString: string | undefined
-		if (queryParams) {
-			const params = new URLSearchParams()
-			Object.keys(queryParams).forEach((e) => {
-				if (Array.isArray(queryParams[e])) {
-					/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-					;(queryParams[e] as any[]).forEach((ee) => params.append(e, ee))
-				} else {
-					/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/
-					params.append(e, queryParams[e] as any)
-				}
-			})
-			queryString = params.toString()
-		}
-		const postAPI_URL = `${resource}/${identifier}`
-		return authFetch(
-			`${API_URL}/${postAPI_URL}${
-				queryString ?
-					postAPI_URL.includes('?') ?
-						`&${queryString}`
-					:	`?${queryString}`
-				:	''
-			}`,
-			{
-				method: 'DELETE'
-			}
-		)
+		return authFetch(buildUrl(`${resource}/${identifier}`, queryParams), {
+			method: 'DELETE'
+		})
 			.then((res) => res.json())
 			.then((data) => data as Result<TResult>)
-			.catch((e) => {
-				console.error(e)
-				throw e
-			})
 	}
 }

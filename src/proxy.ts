@@ -1,8 +1,9 @@
-import { MiddlewareConfig, NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { handleRefreshToken } from './dataFetching/loginHandler'
 import { unAuthenticatedRoutes } from './utils/nonAuthRoutes'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
 	const pathname = request.nextUrl.pathname
 	if (request.method === 'GET') {
 		const requestHeaders = new Headers(request.headers)
@@ -77,7 +78,7 @@ export async function middleware(request: NextRequest) {
 	return NextResponse.next()
 }
 
-export const config: MiddlewareConfig = {
+export const config = {
 	matcher: [
 		'/((?!api|_next/static|_next/image|favicon.ico|logo.webp|logo.png).*)'
 	]
